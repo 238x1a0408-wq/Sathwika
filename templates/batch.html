@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Batch Analysis — Smart Lender</title>
+  <meta name="description" content="Upload a CSV of loan applicants and receive batch AI predictions from Smart Lender's XGBoost engine." />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        <div class="brand-icon">💳</div>
+        <div>
+          <span class="brand-text">Smart Lender</span>
+          <span class="brand-tagline">AI Credit Intelligence</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Dashboard</a></li>
+        <li><a href="/predict">Predict</a></li>
+        <li><a href="/batch" class="active">Batch Analysis</a></li>
+      </ul>
+      <a href="/predict" class="nav-badge" id="nav-predict-btn">
+        <span>🔍</span> Single Predict
+      </a>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-top:40px;padding-bottom:80px;">
+
+    <!-- Page Header -->
+    <div style="margin-bottom:36px;">
+      <div class="hero-badge" style="margin-bottom:16px;">
+        <span class="dot"></span>
+        Scenario 3 · Bulk Applicant Evaluation
+      </div>
+      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:800;margin-bottom:10px;">
+        Batch Application Processing
+      </h1>
+      <p style="color:var(--text-secondary);font-size:15px;max-width:620px;">
+        Upload a CSV file of loan applicants. Smart Lender will evaluate all records simultaneously
+        using XGBoost, returning approval predictions with risk levels and probabilities.
+      </p>
+    </div>
+
+    <!-- CSV Format Card -->
+    <div class="card" style="margin-bottom:28px;border-left:3px solid var(--violet);">
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="font-size:28px;">📝</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Required CSV Format</div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+            Your CSV must contain the following columns (a Loan_ID column is optional):
+          </p>
+          <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:14px 16px;font-family:monospace;font-size:12px;color:var(--cyan);overflow-x:auto;white-space:nowrap;">
+            Loan_ID, Gender, Married, Dependents, Education, Self_Employed, ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History, Property_Area
+          </div>
+          <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" id="downloadSampleBtn" onclick="downloadSample()">
+              ⬇️ Download Sample CSV
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div id="uploadSection">
+      <div class="drop-zone" id="dropZone">
+        <span class="upload-icon">☁️</span>
+        <h3>Drop your CSV file here</h3>
+        <p>or click to browse files</p>
+        <p style="margin-top:8px;font-size:12px;color:var(--text-muted);">.csv files only · No size limit</p>
+        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" />
+      </div>
+    </div>
+
+    <!-- Process Section (hidden initially) -->
+    <div id="processSection" style="display:none;">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div id="selectedFileName" style="font-size:15px;font-weight:600;color:var(--text-primary);">No file selected</div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Ready for processing</p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-secondary btn-sm" id="resetBatch">🔄 Change File</button>
+            <button class="btn btn-primary" id="processBatch" style="min-width:200px;">
+              🚀 Process Applications
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="margin-top:20px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+            <span>Processing</span>
+            <span>XGBoost Engine</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill" style="width:0%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section (hidden initially) -->
+    <div id="resultsSection" style="display:none;margin-top:36px;">
+
+      <!-- Summary Cards -->
+      <div class="section-header">
+        <div>
+          <div class="section-title">Batch Results Summary</div>
+          <div class="section-sub">AI predictions for all uploaded applicants</div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-secondary btn-sm" id="downloadResults">
+            ⬇️ Download CSV
+          </button>
+          <button class="btn btn-secondary btn-sm" id="resetBatch2" onclick="document.getElementById('resetBatch').click()">
+            🔄 New Batch
+          </button>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="batchSummary" style="margin-bottom:32px;margin-top:0;"></div>
+
+      <!-- Results Table -->
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:15px;font-weight:700;">📋 Applicant Predictions</div>
+          <div style="font-size:13px;color:var(--text-secondary);" id="tableCount"></div>
+        </div>
+        <div class="table-wrapper" style="border:none;border-radius:0;">
+          <table>
+            <thead>
+              <tr>
+                <th>Loan ID</th>
+                <th>Prediction</th>
+                <th>Approval Probability</th>
+                <th>Risk Level</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /resultsSection -->
+
+  </div><!-- /container -->
+
+  <footer class="footer">
+    <p class="footer-text">
+      © 2024 <span class="footer-highlight">Smart Lender</span> · Bulk AI Credit Evaluation
+    </p>
+  </footer>
+
+</div><!-- /page-wrapper -->
+
+<script>
+function downloadSample() {
+  const csv = `Loan_ID,Gender,Married,Dependents,Education,Self_Employed,ApplicantIncome,CoapplicantIncome,LoanAmount,Loan_Amount_Term,Credit_History,Property_Area
+LP000001,Male,Yes,0,Graduate,No,5849,0,128,360,1.0,Rural
+LP000002,Male,Yes,1,Graduate,No,4583,1508,128,360,1.0,Rural
+LP000003,Male,Yes,0,Graduate,Yes,3000,0,66,360,1.0,Urban
+LP000004,Male,Yes,0,Not Graduate,No,2583,2358,120,360,1.0,Urban
+LP000005,Female,No,0,Graduate,No,6000,0,141,360,1.0,Urban
+LP000006,Male,Yes,2,Graduate,Yes,5417,4196,267,360,1.0,Urban
+LP000007,Male,Yes,0,Not Graduate,No,2333,1516,95,360,1.0,Urban
+LP000008,Male,No,0,Graduate,No,3036,2504,158,360,0.0,Semiurban
+LP000009,Female,Yes,3+,Graduate,No,4006,1526,168,360,1.0,Urban
+LP000010,Male,Yes,1,Graduate,No,4500,1800,100,360,1.0,Semiurban
+LP000011,Male,No,2,Not Graduate,Yes,1600,0,320,360,0.0,Rural
+LP000012,Female,No,0,Graduate,No,2900,0,75,36,1.0,Rural`;
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'smart_lender_sample.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Update table count after results render
+const observer = new MutationObserver(() => {
+  const tbody = document.getElementById('resultsTableBody');
+  const count = document.getElementById('tableCount');
+  if (tbody && count) {
+    const rows = tbody.querySelectorAll('tr').length;
+    if (rows > 0) count.textContent = `${rows} applications`;
+  }
+});
+const tbody = document.getElementById('resultsTableBody');
+if (tbody) observer.observe(tbody, { childList: true });
+</script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

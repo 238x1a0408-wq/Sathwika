@@ -1,0 +1,44 @@
+{
+  "models": {
+    "Decision Tree": {
+      "train_accuracy": 92.46,
+      "test_accuracy": 85.37,
+      "cv_accuracy": 85.66
+    },
+    "Random Forest": {
+      "train_accuracy": 91.85,
+      "test_accuracy": 90.24,
+      "cv_accuracy": 88.6
+    },
+    "KNN": {
+      "train_accuracy": 90.22,
+      "test_accuracy": 91.87,
+      "cv_accuracy": 89.57
+    },
+    "XGBoost": {
+      "train_accuracy": 97.15,
+      "test_accuracy": 86.99,
+      "cv_accuracy": 86.64
+    }
+  },
+  "best_model": "XGBoost",
+  "feature_importance": {
+    "Gender": 0.04514965042471886,
+    "Married": 0.05712181702256203,
+    "Dependents": 0.07396483421325684,
+    "Education": 0.06487258523702621,
+    "Self_Employed": 0.08805391937494278,
+    "ApplicantIncome": 0.05859703570604324,
+    "CoapplicantIncome": 0.07061157375574112,
+    "LoanAmount": 0.06340374797582626,
+    "Loan_Amount_Term": 0.06262831389904022,
+    "Credit_History": 0.3448060154914856,
+    "Property_Area": 0.07079052180051804
+  },
+  "dataset_stats": {
+    "total_rows": 614,
+    "approved": 549,
+    "rejected": 65,
+    "approval_rate": 89.41
+  }
+}
