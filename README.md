@@ -1,4 +1,4 @@
-# 🌟 Sathvika
+# 🌟 Sathwika
 
 > 🚀 A modern and user-friendly application built to provide an efficient and seamless experience.
 
